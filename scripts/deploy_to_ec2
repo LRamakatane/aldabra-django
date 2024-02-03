@@ -1,0 +1,12 @@
+#!/usr/bin/bash
+git archive --format=tar.gz dev -o booking-api-dev.tar.gz
+ssh -i "server-key-pair.pem" ubuntu@ec2-34-192-156-241.compute-1.amazonaws.com "cd ~/app && rm -rf *"
+scp -i "server-key-pair.pem" booking-api-dev.tar.gz ubuntu@ec2-34-192-156-241.compute-1.amazonaws.com:~/app
+ssh -i "server-key-pair.pem" ubuntu@ec2-34-192-156-241.compute-1.amazonaws.com "cd ~/app && tar -xzvf booking-api-dev.tar.gz && rm booking-api-dev.tar.gz"
+ssh -i "server-key-pair.pem" ubuntu@ec2-34-192-156-241.compute-1.amazonaws.com "cd ~/app && ./scripts/install_virtualenv && virtualenv venv && source venv/bin/activate"
+ssh -i "server-key-pair.pem" ubuntu@ec2-34-192-156-241.compute-1.amazonaws.com "cd ~/app && venv/bin/python -m pip install -r requirements.txt && venv/bin/python -m pip install -r devrequirements.txt"
+ssh -i "server-key-pair.pem" ubuntu@ec2-34-192-156-241.compute-1.amazonaws.com "cd ~/app && venv/bin/python manage.py collectstatic --noinput"
+# ssh -i "server-key-pair.pem" ubuntu@ec2-34-192-156-241.compute-1.amazonaws.com "cd ~/app && ./scripts/install_puppet"
+# ssh -i "server-key-pair.pem" ubuntu@ec2-34-192-156-241.compute-1.amazonaws.com "sudo /opt/puppetlabs/bin/puppet apply /etc/puppetlabs/code/environments/development/modules/booking_api/manifests/init.pp --environment=development --logdest console --debug"
+ssh -i "server-key-pair.pem" ubuntu@ec2-34-192-156-241.compute-1.amazonaws.com "cd ~/app && ./scripts/configure_server"
+rm -rf booking-api-dev.tar.gz

@@ -1,0 +1,2 @@
+#!/usr/bin/bash
+ssh -i "server-key-pair.pem" ubuntu@34.192.156.241 "journalctl -u daphne -f"

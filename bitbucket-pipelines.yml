@@ -1,0 +1,382 @@
+#  This template allows you to deploy your Python Django booking-devlication to the Google booking-dev Engine.
+#  The workflow allows running tests, code linting and security scans on feature branches (as well as master).
+#  The Python Django booking-devlication will be deployed after the code is merged to master.
+
+# Prerequisites: $KEY_FILE and $PROJECT setup in the Deployment variables.
+# For advanced cases, please, follow examples from the pipe's README https://bitbucket.org/atlassian/google-booking-dev-engine-deploy/src/master/README.md
+# Your environment variables should also be declared in the booking-dev.yaml.template.
+
+image: python:3.10.11
+
+# Workflow Configuration
+
+pipelines:
+    default:
+        - parallel:
+              - step:
+                    name: Build
+                    caches:
+                        - pip
+                    script:
+                        # Use a in-memory sqlite3 database
+                        - export TRAMPOLINE_CI=true
+                        - echo 'ENV=dev' > .env
+                        - pip install -r requirements.txt
+
+              - step:
+                    name: Lint the python code
+                    script:
+                        - pip install flake8 flake8-import-order
+                        # Command-line utility for enforcing style (PEP-0008) consistency across Python projects https://flake8.pycqa.org/en/latest/manpage.html
+                        - flake8 .
+                        # excluded by Default: ['.svn', 'CVS', '.bzr', '.hg', '.git', '__pycache__', '.tox', '.eggs', '*.egg']
+
+    # pull-requests:
+    #     staging:
+    #         - step:
+    #               name: notify team on slack
+    #               script:
+    #                   - pipe: atlassian/slack-notify:2.1.0
+    #                     variables:
+    #                         WEBHOOK_URL: $SLACK_WEBHOOK_URL
+    #                         MESSAGE: "${BITBUCKET_REPO_FULL_NAME}:${BITBUCKET_BRANCH} pull request made staging, CI has started"
+
+    #         - parallel:
+    #               - step:
+    #                     name: Build
+    #                     caches:
+    #                         - pip
+    #                     script:
+    #                         # Use a in-memory sqlite3 database
+    #                         - export TRAMPOLINE_CI=true
+    #                         - echo 'ENV=staging' > .env
+    #                         - pip install -r requirements.txt
+    #                         - python manage.py migrate
+
+    #               - step:
+    #                     name: Lint the python code
+    #                     script:
+    #                         - pip install flake8 flake8-import-order
+    #                         # Command-line utility for enforcing style (PEP-0008) consistency across Python projects https://flake8.pycqa.org/en/latest/manpage.html
+    #                         - flake8 .
+    #                         # excluded by Default: ['.svn', 'CVS', '.bzr', '.hg', '.git', '__pycache__', '.tox', '.eggs', '*.egg']
+
+    #               - step:
+    #                     name: Security Scan
+    #                     script:
+    #                         # Run a security scan for sensitive data.
+    #                         # See more security tools at https://bitbucket.org/product/features/pipelines/integrations?&category=security
+    #                         - pipe: atlassian/git-secrets-scan:0.5.1
+
+    #     dev:
+    #         - step:
+    #               name: notify team on slack
+    #               script:
+    #                   - pipe: atlassian/slack-notify:2.1.0
+    #                     variables:
+    #                         WEBHOOK_URL: $SLACK_WEBHOOK_URL
+    #                         MESSAGE: "${BITBUCKET_REPO_FULL_NAME}:${BITBUCKET_BRANCH} pull request made to dev, CI has started"
+
+    #         - parallel:
+    #               - step:
+    #                     name: Build
+    #                     caches:
+    #                         - pip
+    #                     script:
+    #                         # Use a in-memory sqlite3 database
+    #                         - export TRAMPOLINE_CI=true
+    #                         - pip install -r requirements.txt
+
+    #                         - pip install -r devrequirements.txt
+    #                         - python manage.py migrate
+
+    #           # - step:
+    #           #     name: Security Scan
+    #           #     script:
+    #           #       # Run a security scan for sensitive data.
+    #           #       # See more security tools at https://bitbucket.org/product/features/pipelines/integrations?&category=security
+    #           #       - pipe: atlassian/git-secrets-scan:0.5.1
+
+    #     feature/*:
+    #         - step:
+    #               name: Build
+    #               caches:
+    #                   - pip
+    #               script:
+    #                   # Use a in-memory sqlite3 database
+    #                   - export TRAMPOLINE_CI=true
+    #                   - pip install -r requirements.txt
+    #                   - pip install -r devrequirements.txt
+    #                   - python manage.py migrate
+
+    #         - step:
+    #               name: Lint the python code
+    #               script:
+    #                   - pip install flake8 flake8-import-order
+    #                   # Command-line utility for enforcing style (PEP-0008) consistency across Python projects https://flake8.pycqa.org/en/latest/manpage.html
+    #                   - flake8 .
+    #                   # excluded by Default: ['.svn', 'CVS', '.bzr', '.hg', '.git', '__pycache__', '.tox', '.eggs', '*.egg']
+
+    #     release/*:
+    #         - parallel:
+    #               - step:
+    #                     name: Build
+    #                     caches:
+    #                         - pip
+    #                     script:
+    #                         # Use a in-memory sqlite3 database
+    #                         - export TRAMPOLINE_CI=true
+    #                         - echo 'ENV=prod' > .env
+    #                         - pip install -r requirements.txt
+    #                         - python manage.py migrate
+
+    #               - step:
+    #                     name: Lint the python code
+    #                     script:
+    #                         - pip install flake8 flake8-import-order
+    #                         # Command-line utility for enforcing style (PEP-0008) consistency across Python projects https://flake8.pycqa.org/en/latest/manpage.html
+    #                         - flake8 .
+    #                         # excluded by Default: ['.svn', 'CVS', '.bzr', '.hg', '.git', '__pycache__', '.tox', '.eggs', '*.egg']
+
+    # branches:
+    #     release/*:
+    #         - parallel:
+    #             - step:
+    #                     name: Build
+    #                     caches:
+    #                         - pip
+    #                     script:
+    #                         # Use a in-memory sqlite3 database
+    #                         - export TRAMPOLINE_CI=true
+    #                         - echo 'ENV=prod' > .env
+    #                         - pip install -r requirements.txt
+
+    #             - step:
+    #                     name: Lint the python code
+    #                     script:
+    #                         - pip install flake8 flake8-import-order
+    #                         # Command-line utility for enforcing style (PEP-0008) consistency across Python projects https://flake8.pycqa.org/en/latest/manpage.html
+    #                         - flake8 .
+    #                         # excluded by Default: ['.svn', 'CVS', '.bzr', '.hg', '.git', '__pycache__', '.tox', '.eggs', '*.egg']
+
+    #     main:
+    #         - step:
+    #               name: notify team on slack
+    #               script:
+    #                   - pipe: atlassian/slack-notify:2.1.0
+    #                     variables:
+    #                         WEBHOOK_URL: $SLACK_WEBHOOK_URL
+    #                         MESSAGE: "changes med to ${BITBUCKET_REPO_FULL_NAME}:${BITBUCKET_BRANCH}, CI has started"
+
+    #         - parallel:
+    #               - step:
+    #                     fail-fast: true
+    #                     name: install requirements and run database migrations
+    #                     caches:
+    #                         - pip
+    #                     script:
+    #                         # Use a in-memory sqlite3 database
+    #                         - export TRAMPOLINE_CI=true
+    #                         - echo 'ENV=production' > .env
+    #                         - pip install -r requirements.txt
+    #                         - python manage.py migrate
+
+    #                     after-script:
+    #                         - pipe: atlassian/slack-notify:2.1.0
+    #                           variables:
+    #                               WEBHOOK_URL: $SLACK_WEBHOOK_URL
+    #                               MESSAGE: "${BITBUCKET_REPO_FULL_NAME}:${BITBUCKET_BRANCH} initial build has exited with status code ${BITBUCKET_EXIT_CODE}"
+
+    #               - step:
+    #                     fail-fast: true
+    #                     name: Lint the python code
+    #                     script:
+    #                         - pip install flake8 flake8-import-order
+    #                         # Command-line utility for enforcing style (PEP-0008) consistency across Python projects https://flake8.pycqa.org/en/latest/manpage.html
+    #                         - flake8 .
+    #                         # excluded by Default: ['.svn', 'CVS', '.bzr', '.hg', '.git', '__pycache__', '.tox', '.eggs', '*.egg']
+
+    #                     after-script:
+    #                         - pipe: atlassian/slack-notify:2.1.0
+    #                           variables:
+    #                               WEBHOOK_URL: $SLACK_WEBHOOK_URL
+    #                               MESSAGE: "${BITBUCKET_REPO_FULL_NAME}:${BITBUCKET_BRANCH} code linting has exited with status code ${BITBUCKET_EXIT_CODE}"
+
+    #           # - step:
+    #           #     fail-fast: false
+    #           #     name: Security Scan
+    #           #     script:
+    #           #       # Run a security scan for sensitive data.
+    #           #       # See more security tools at https://bitbucket.org/product/features/pipelines/integrations?&category=security
+    #           #       - pipe: atlassian/git-secrets-scan:0.5.1
+
+    #           #     after-script:
+    #           #         - pipe: atlassian/slack-notify:2.1.0
+    #           #           variables:
+    #           #             WEBHOOK_URL: $SLACK_WEBHOOK_URL
+    #           #             MESSAGE: "${BITBUCKET_REPO_FULL_NAME}:${BITBUCKET_BRANCH} security scan has exited with status code ${BITBUCKET_EXIT_CODE}"
+
+    #         - step:
+    #               name: Build
+    #               script:
+    #                   - echo 'ENV=prod' > .env
+    #                   - git archive --format=tar.gz main -o booking-api-main.tar.gz
+    #               artifacts:
+    #                   - booking-api-main.tar.gz
+
+    #         - step:
+    #               name: Deploy to production
+    #               deployment: production
+    #               caches:
+    #                   - pip
+
+    #               script:
+    #                   - apt-get install -y openssh-client
+    #                   - mkdir -p ~/.ssh
+    #                   - echo $KNOWN_HOSTS >> ~/.ssh/known_hosts
+    #                   - (umask 077 ; echo $SSH_PRIVATE_KEY | base64 --decode > ~/.ssh/id_rsa_production)
+    #                   - chmod 600 ~/.ssh/id_rsa_production
+    #                   - ssh -i ~/.ssh/id_rsa_production ubuntu@54.243.217.35 "mkdir -p ~/app && cd ~/app && rm -rf ~/app/*"
+    #                   - scp -i ~/.ssh/id_rsa_production booking-api-main.tar.gz ubuntu@54.243.217.35:~/app
+    #                   - ssh -i ~/.ssh/id_rsa_production ubuntu@54.243.217.35 "cd ~/app && tar -xzvf booking-api-main.tar.gz && rm booking-api-main.tar.gz"
+    #                   - ssh -i ~/.ssh/id_rsa_production ubuntu@54.243.217.35 "cd ~/app && ./scripts/install_virtualenv && virtualenv venv && source venv/bin/activate"
+    #                   - ssh -i ~/.ssh/id_rsa_production ubuntu@54.243.217.35 "cd ~/app && venv/bin/python -m pip install -r requirements.txt"
+    #                   - ssh -i ~/.ssh/id_rsa_production ubuntu@54.243.217.35 "cd ~/app && venv/bin/python manage.py collectstatic --noinput"
+    #                   - ssh -i ~/.ssh/id_rsa_production ubuntu@54.243.217.35 "export ENV=production && cd ~/app && ./scripts/production/configure_server"
+
+    #         - step:
+    #               name: notify team on slack
+    #               script:
+    #                   - pipe: atlassian/slack-notify:2.1.0
+    #                     variables:
+    #                         WEBHOOK_URL: $SLACK_WEBHOOK_URL
+    #                         MESSAGE: "${BITBUCKET_REPO_FULL_NAME}:${BITBUCKET_BRANCH} has been deployed to production"
+
+    #     staging:
+    #         - step:
+    #               name: notify team on slack
+    #               script:
+    #                   - pipe: atlassian/slack-notify:2.1.0
+    #                     variables:
+    #                         WEBHOOK_URL: $SLACK_WEBHOOK_URL
+    #                         MESSAGE: "changes made to ${BITBUCKET_REPO_FULL_NAME}:${BITBUCKET_BRANCH}, CI has started"
+
+    #         - parallel:
+    #               - step:
+    #                     fail-fast: true
+    #                     name: install requirements and run database migrations
+    #                     caches:
+    #                         - pip
+    #                     script:
+    #                         # Use a in-memory sqlite3 database
+    #                         - export TRAMPOLINE_CI=true
+    #                         - echo 'ENV=staging' > .env
+    #                         - pip install -r requirements.txt
+    #                         - python manage.py migrate
+
+    #                     after-script:
+    #                         - pipe: atlassian/slack-notify:2.1.0
+    #                           variables:
+    #                               WEBHOOK_URL: $SLACK_WEBHOOK_URL
+    #                               MESSAGE: "${BITBUCKET_REPO_FULL_NAME}:${BITBUCKET_BRANCH} initial build has exited with status code ${BITBUCKET_EXIT_CODE}"
+
+    #               - step:
+    #                     fail-fast: true
+    #                     name: Lint the python code
+    #                     script:
+    #                         - pip install flake8 flake8-import-order
+    #                         # Command-line utility for enforcing style (PEP-0008) consistency across Python projects https://flake8.pycqa.org/en/latest/manpage.html
+    #                         - flake8 .
+    #                         # excluded by Default: ['.svn', 'CVS', '.bzr', '.hg', '.git', '__pycache__', '.tox', '.eggs', '*.egg']
+
+    #           # - step:
+    #           #     name: Security Scan
+    #           #     script:
+    #           #       # Run a security scan for sensitive data.
+    #           #       # See more security tools at https://bitbucket.org/product/features/pipelines/integrations?&category=security
+    #           #       - pipe: atlassian/git-secrets-scan:0.5.1
+
+    #         - step:
+    #               name: Create Build
+    #               script:
+    #                   - echo 'ENV=staging' > .env
+    #                   - git archive --format=tar.gz staging -o booking-api-staging.tar.gz
+    #               artifacts:
+    #                   - booking-api-staging.tar.gz
+
+    #         - step:
+    #               name: Deploy to staging
+    #               deployment: staging
+    #               caches:
+    #                   - pip
+
+    #               script:
+    #                   - apt-get install -y openssh-client
+    #                   - mkdir -p ~/.ssh
+    #                   - echo $KNOWN_HOSTS >> ~/.ssh/known_hosts
+    #                   - (umask 077 ; echo $SSH_PRIVATE_KEY | base64 --decode > ~/.ssh/id_rsa_staging)
+    #                   - chmod 600 ~/.ssh/id_rsa_staging
+    #                   - ssh -i ~/.ssh/id_rsa_staging ubuntu@54.209.231.42 "mkdir -p ~/booking-staging && cd ~/booking-staging && rm -rf ~/booking-staging/*"
+    #                   - scp -i ~/.ssh/id_rsa_staging booking-api-staging.tar.gz ubuntu@54.209.231.42:~/booking-staging
+    #                   - ssh -i ~/.ssh/id_rsa_staging ubuntu@54.209.231.42 "cd ~/booking-staging && tar -xzvf booking-api-staging.tar.gz && rm booking-api-staging.tar.gz"
+    #                   - ssh -i ~/.ssh/id_rsa_staging ubuntu@54.209.231.42 "cd ~/booking-staging && ./scripts/install_virtualenv && virtualenv venv && source venv/bin/activate"
+    #                   - ssh -i ~/.ssh/id_rsa_staging ubuntu@54.209.231.42 "cd ~/booking-staging && venv/bin/python -m pip install -r requirements.txt"
+    #                   - ssh -i ~/.ssh/id_rsa_staging ubuntu@54.209.231.42 "cd ~/booking-staging && venv/bin/python manage.py collectstatic --noinput"
+    #                   - ssh -i ~/.ssh/id_rsa_staging ubuntu@54.209.231.42 "export ENV=staging && cd ~/booking-staging && ./scripts/configure_server"
+
+    #               after-script:
+    #                   - pipe: atlassian/slack-notify:2.1.0
+    #                     variables:
+    #                         WEBHOOK_URL: $SLACK_WEBHOOK_URL
+    #                         MESSAGE: "${BITBUCKET_REPO_FULL_NAME}:${BITBUCKET_BRANCH} build deployment has exited with status ${BITBUCKET_EXIT_CODE}"
+
+    #     dev:
+    #         - parallel:
+    #               - step:
+    #                     name: Build
+    #                     caches:
+    #                         - pip
+    #                     script:
+    #                         # Use a in-memory sqlite3 database
+    #                         - export TRAMPOLINE_CI=true
+    #                         - echo 'ENV=dev' > .env
+    #                         - pip install -r requirements.txt
+    #                         - pip install -r devrequirements.txt
+    #                         - python manage.py migrate
+
+    #           # - step:
+    #           #     name: Security Scan
+    #           #     script:
+    #           #       # Run a security scan for sensitive data.
+    #           #       # See more security tools at https://bitbucket.org/product/features/pipelines/integrations?&category=security
+    #           #       - pipe: atlassian/git-secrets-scan:0.5.1
+
+    #         - step:
+    #               name: Build
+    #               script:
+    #                   - echo 'ENV=dev' > .env
+    #                   - git archive --format=tar.gz dev -o booking-api-dev.tar.gz
+    #               artifacts:
+    #                   - booking-api-dev.tar.gz
+
+    #         - step:
+    #               name: Deploy to dev
+    #               deployment: dev
+    #               caches:
+    #                   - pip
+
+    #               script:
+    #                   - apt-get install -y openssh-client
+    #                   - ssh ubuntu@34.192.156.241 "mkdir -p ~/booking-dev && cd ~/booking-dev && rm -rf ~/booking-dev/*"
+    #                   - scp booking-api-dev.tar.gz ubuntu@34.192.156.241:~/booking-dev
+    #                   - ssh ubuntu@34.192.156.241 "cd ~/booking-dev && tar -xzvf booking-api-dev.tar.gz && rm booking-api-dev.tar.gz"
+    #                   - ssh ubuntu@34.192.156.241 "cd ~/booking-dev && ./scripts/install_virtualenv && virtualenv venv && source venv/bin/activate"
+    #                   - ssh ubuntu@34.192.156.241 "cd ~/booking-dev && venv/bin/python -m pip install -r requirements.txt && venv/bin/python -m pip install -r devrequirements.txt"
+    #                   - ssh ubuntu@34.192.156.241 "cd ~/booking-dev && venv/bin/python manage.py collectstatic --noinput"
+    #                   - ssh ubuntu@34.192.156.241 "export ENV=dev && cd ~/booking-dev && ./scripts/configure_server"
+
+    #               after-script:
+    #                   - pipe: atlassian/slack-notify:2.1.0
+    #                     variables:
+    #                         WEBHOOK_URL: $SLACK_WEBHOOK_URL
+    #                         MESSAGE: "${BITBUCKET_REPO_FULL_NAME}:${BITBUCKET_BRANCH} deployment status: ${BITBUCKET_EXIT_CODE}"

@@ -1,0 +1,10 @@
+#!/usr/bin/bash
+# installs a postgresql database
+# installs appropiate libraries
+# sudo apt update
+# sudo apt install postgresql postgresql-contrib -y
+# sudo service postgresql start
+# sudo apt install python3-dev libpq-dev -y
+
+createuser testuser -S
+createdb -U testuser -hlocalhost -p5432 -E utf8 testdb

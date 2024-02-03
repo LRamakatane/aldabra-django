@@ -1,0 +1,3 @@
+#!/usr/bin/bash
+flake8 . --extend-exclude=dist,build,static,migrations,__init__.py,tests,scripts
+git push

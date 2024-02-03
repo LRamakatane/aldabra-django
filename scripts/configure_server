@@ -1,0 +1,4 @@
+#!/usr/bin/bash
+./scripts/install_nginx
+./scripts/daphne_service.sh
+./scripts/nginx_setup.sh
