@@ -14,7 +14,7 @@ def main():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
     os.environ.setdefault("DJANGO_CONFIGURATION", configuration)
 
-    if configuration in ("Local", "Dev"):
+    if configuration in ("Local", "Development"):
         environ.Env.read_env("config/envs/.env.dev")
     elif configuration in ("Staging", "Beta"):
         environ.Env.read_env("config/envs/.env.staging")

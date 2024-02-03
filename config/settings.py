@@ -7,25 +7,30 @@ https://docs.djangoproject.com/en/4.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
+
 import os
 from pathlib import Path
 from django.utils.timezone import timedelta
 import ssl
 from configurations import Configuration, values
+import environ
+
+env = environ.Env()
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class Common(Configuration):
-    # Build paths inside the project like this: BASE_DIR / 'subdir'.
-    BASE_DIR = Path(__file__).resolve().parent.parent
 
     # SECURITY WARNING: keep the secret key used in production secret!
     # create your own secret key
-    SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+    SECRET_KEY = env("DJANGO_SECRET_KEY")
 
     # SECURITY WARNING: don't run with debug turned on in production!
     DEBUG = values.BooleanValue(False)
 
-    ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
+    ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(",")
 
     # Application definition
     INSTALLED_APPS = [
@@ -132,17 +137,6 @@ class Common(Configuration):
         "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     }
 
-    SIMPLE_JWT = {
-        "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
-        "REFRESH_TOKEN_LIFETIME": timedelta(days=5),
-        "UPDATE_LAST_LOGIN": True,
-        "SIGNING_KEY": SECRET_KEY,
-        "AUTH_HEADER_TYPES": ("Bearer",),
-        "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
-        "ROTATE_REFRESH_TOKENS": True,
-        "BLACKLIST_AFTER_ROTATION": True,
-    }
-
     # Cors headers
     CORS_ORIGIN_ALLOW_ALL = True
     CORS_ALLOW_ALL_ORIGINS = True
@@ -159,22 +153,6 @@ class Common(Configuration):
     LOGIN_URL = "/admin/login/"
     SITE_NAME = ""
     DOMAIN = ""
-
-    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-    AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-    AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
-    AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
-
-    # set up for using MailGun SMTP backend
-    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_HOST = "smtp.mailgun.org"
-    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-    EMAIL_PORT = 465
-    EMAIL_USE_SSL = True
-    EMAIL_USE_TLS = False
-    DEFAULT_FROM_EMAIL = ""
 
     # Configure the logging settings
     LOG_DIR = os.path.join(BASE_DIR, "logs")
@@ -237,7 +215,7 @@ class Local(Common):
 
     MIDDLEWARE = Common.MIDDLEWARE + ["debug_toolbar.middleware.DebugToolbarMiddleware"]
 
-    DATABASES = values.DatabaseURLValue(os.getenv("DATABASE_URL"))
+    DATABASES = values.DatabaseURLValue(env("DATABASE_URL"))
 
     DATABASES["default"]["CONN_MAX_AGE"] = 600
 
@@ -275,6 +253,22 @@ class Local(Common):
         "SCOPES": {"read": "Read scope", "write": "Write scope"},
     }
 
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
+    AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+    AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME")
+
+    # set up for using MailGun SMTP backend
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = "smtp.mailgun.org"
+    EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+    EMAIL_PORT = 465
+    EMAIL_USE_SSL = True
+    EMAIL_USE_TLS = False
+    DEFAULT_FROM_EMAIL = ""
+
 
 class Development(Local):
     """
@@ -295,7 +289,7 @@ class Development(Local):
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.redis.RedisCache",
-            "LOCATION": os.getenv("REDIS_URI2"),
+            "LOCATION": env("REDIS_URI2"),
             "OPTIONS": {"ssl_cert_reqs": None},
         }
     }
@@ -304,7 +298,7 @@ class Development(Local):
     ssl_context.check_hostname = False
 
     heroku_redis_ssl_host = {
-        "address": os.getenv(
+        "address": env(
             "REDIS_URI"
         ),  # The 'rediss' schema denotes a SSL connection.
         "ssl_cert_reqs": None,
@@ -338,6 +332,22 @@ class Development(Local):
     #     },
     # }
 
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
+    AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+    AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME")
+
+    # set up for using MailGun SMTP backend
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = "smtp.mailgun.org"
+    EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+    EMAIL_PORT = 465
+    EMAIL_USE_SSL = True
+    EMAIL_USE_TLS = False
+    DEFAULT_FROM_EMAIL = ""
+
 
 class Staging(Common):
     """
@@ -355,7 +365,7 @@ class Staging(Common):
     SECURE_SSL_REDIRECT = values.BooleanValue(True)
     SECURE_PROXY_SSL_HEADER = values.TupleValue(("HTTP_X_FORWARDED_PROTO", "https"))
 
-    CSRF_TRUSTED_ORIGINS = os.getenv("TRUSTED_ORIGINS").split(",")
+    CSRF_TRUSTED_ORIGINS = env("TRUSTED_ORIGINS").split(",")
 
     TOKEN_EXPIRE_AT = 60
 
@@ -367,7 +377,7 @@ class Staging(Common):
 
     Common.INSTALLED_APPS.extend(BETA_APPS)
 
-    DATABASES = values.DatabaseURLValue(os.getenv("DATABASE_URL"))
+    DATABASES = values.DatabaseURLValue(env("DATABASE_URL"))
 
     DATABASES["default"]["CONN_MAX_AGE"] = 600
 
@@ -446,7 +456,7 @@ class Staging(Common):
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.redis.RedisCache",
-            "LOCATION": os.getenv("REDIS_URI2"),
+            "LOCATION": env("REDIS_URI2"),
             "OPTIONS": {"ssl_cert_reqs": None},
         }
     }
@@ -455,7 +465,7 @@ class Staging(Common):
     ssl_context.check_hostname = False
 
     heroku_redis_ssl_host = {
-        "address": os.getenv(
+        "address": env(
             "REDIS_URI"
         ),  # The 'rediss' schema denotes a SSL connection.
         "ssl_cert_reqs": None,
@@ -471,6 +481,22 @@ class Staging(Common):
             },
         },
     }
+
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
+    AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+    AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME")
+
+    # set up for using MailGun SMTP backend
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = "smtp.mailgun.org"
+    EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+    EMAIL_PORT = 465
+    EMAIL_USE_SSL = True
+    EMAIL_USE_TLS = False
+    DEFAULT_FROM_EMAIL = ""
 
 
 class Production(Staging):
@@ -561,7 +587,7 @@ class Production(Staging):
     CACHING = {
         "default": {
             "BACKEND": "django.core.cache.backends.redis.RedisCache",
-            "LOCATION": os.getenv("REDIS_URI2"),
+            "LOCATION": env("REDIS_URI2"),
             "OPTIONS": {"ssl_cert_reqs": None},
         }
     }
@@ -570,7 +596,7 @@ class Production(Staging):
     ssl_context.check_hostname = False
 
     heroku_redis_ssl_host = {
-        "address": os.getenv(
+        "address": env(
             "REDIS_URI"
         ),  # The 'rediss' schema denotes a SSL connection.
         "ssl_cert_reqs": None,
@@ -586,3 +612,19 @@ class Production(Staging):
             },
         },
     }
+
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
+    AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+    AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME")
+
+    # set up for using MailGun SMTP backend
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = "smtp.mailgun.org"
+    EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+    EMAIL_PORT = 465
+    EMAIL_USE_SSL = True
+    EMAIL_USE_TLS = False
+    DEFAULT_FROM_EMAIL = ""
