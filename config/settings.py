@@ -13,24 +13,22 @@ from pathlib import Path
 from django.utils.timezone import timedelta
 import ssl
 from configurations import Configuration, values
+from decouple import config as env
+
 import environ
 
-env = environ.Env()
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class Common(Configuration):
+    # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
     # SECURITY WARNING: keep the secret key used in production secret!
-    # create your own secret key
-    SECRET_KEY = env("DJANGO_SECRET_KEY")
 
     # SECURITY WARNING: don't run with debug turned on in production!
-    DEBUG = values.BooleanValue(False)
+    DEBUG = values.BooleanValue(True)
 
-    ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(",")
+    ALLOWED_HOSTS = ["*"]
 
     # Application definition
     INSTALLED_APPS = [
@@ -43,16 +41,13 @@ class Common(Configuration):
         "django.contrib.staticfiles",
         "django_extensions",
         "debug_toolbar",
-        "accounts.apps.AccountsConfig",
-        "main.apps.MainConfig",
-        "social_auth",
+        "core",
         "rest_framework",
-        "djoser",
         "drf_yasg",
         "coreapi",
         "corsheaders",
-        "rest_framework_simplejwt.token_blacklist",
         "storages",
+        "oauth2_provider",
     ]
 
     MIDDLEWARE = [
@@ -128,7 +123,7 @@ class Common(Configuration):
     # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
     DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-    AUTH_USER_MODEL = "accounts.User"
+    AUTH_USER_MODEL = "core.User"
 
     REST_FRAMEWORK = {
         "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -153,6 +148,22 @@ class Common(Configuration):
     LOGIN_URL = "/admin/login/"
     SITE_NAME = ""
     DOMAIN = ""
+
+    # DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    # AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
+    # AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
+    # AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+    # AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME")
+
+    # # set up for using MailGun SMTP backend
+    # EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    # EMAIL_HOST = "smtp.mailgun.org"
+    # EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+    # EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+    # EMAIL_PORT = 465
+    # EMAIL_USE_SSL = True
+    # EMAIL_USE_TLS = False
+    # DEFAULT_FROM_EMAIL = ""
 
     # Configure the logging settings
     LOG_DIR = os.path.join(BASE_DIR, "logs")
@@ -211,13 +222,25 @@ class Local(Common):
     The local developer settings for his computer and the default configuration.
     """
 
-    INTERNAL_IPS = ["127.0.0.1"]
+    env = environ.Env()
+
+    env_file = os.path.join(BASE_DIR, "config/envs/.env.dev")
+
+    env.read_env(env_file=env_file)
+
+    SECRET_KEY = env("DJANGO_SECRET_KEY")
 
     MIDDLEWARE = Common.MIDDLEWARE + ["debug_toolbar.middleware.DebugToolbarMiddleware"]
 
-    DATABASES = values.DatabaseURLValue(env("DATABASE_URL"))
+    database_url = env("DATABASE_URL")
 
-    DATABASES["default"]["CONN_MAX_AGE"] = 600
+    DATABASES = values.DatabaseURLValue(database_url)
+
+    DATABASES.default["CONN_MAX_AGE"] = 600
+
+    INTERNAL_IPS = ["127.0.0.1"]
+
+    MIDDLEWARE = Common.MIDDLEWARE + ["debug_toolbar.middleware.DebugToolbarMiddleware"]
 
     CORS_ORIGIN_ALLOW_ALL = True
 
@@ -235,7 +258,7 @@ class Local(Common):
     Common.REST_FRAMEWORK.update(
         {
             "DEFAULT_AUTHENTICATION_CLASSES": (
-                "services.authservice.backends.OAuth2ClientCredentialAuthentication",
+                "config.backends.OAuth2ClientCredentialAuthentication",
                 "knox.auth.TokenAuthentication",
             ),
             "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
@@ -253,74 +276,17 @@ class Local(Common):
         "SCOPES": {"read": "Read scope", "write": "Write scope"},
     }
 
-    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-    AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
-    AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
-    AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME")
-
-    # set up for using MailGun SMTP backend
-    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_HOST = "smtp.mailgun.org"
-    EMAIL_HOST_USER = env("EMAIL_HOST_USER")
-    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
-    EMAIL_PORT = 465
-    EMAIL_USE_SSL = True
-    EMAIL_USE_TLS = False
-    DEFAULT_FROM_EMAIL = ""
-
-
-class Development(Local):
-    """
-    The in-development settings and the default configuration.
-    """
-
-    TOKEN_EXPIRE_AT = 60
-
-    CSRF_TRUSTED_ORIGINS = []
-
-    # DEV APPS
-    # NOT ALL LIBRARIES HERE MIGHT MAKE IT TO STAGING OR PRODUCTION
-    DEV_APPS = ["knox", "drf_yasg", "drf_standardized_errors"]
-    Common.INSTALLED_APPS.extend(DEV_APPS)
-
-    CORS_ORIGIN_ALLOW_ALL = True
-
-    CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.redis.RedisCache",
-            "LOCATION": env("REDIS_URI2"),
-            "OPTIONS": {"ssl_cert_reqs": None},
-        }
-    }
-
-    ssl_context = ssl.SSLContext()
-    ssl_context.check_hostname = False
-
-    heroku_redis_ssl_host = {
-        "address": env(
-            "REDIS_URI"
-        ),  # The 'rediss' schema denotes a SSL connection.
-        "ssl_cert_reqs": None,
-    }
-
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "channels_redis.core.RedisChannelLayer",
-            "CONFIG": {
-                "hosts": [
-                    heroku_redis_ssl_host,
-                ],
-            },
-        },
-    }
-
-    # # Celery settings
-    # CELERY_BROKER_URL = "redis://localhost:6379"
-    # CELERY_RESULT_BACKEND = "redis://localhost:6379"
+    # Celery settings
+    # CELERY_BROKER_URL = env("REDIS_URI")
+    # CELERY_RESULT_BACKEND = env("REDIS_URI")
     # CELERY_TIMEZONE = "Africa/Lagos"
     # CELERY_TASK_TRACK_STARTED = True
     # CELERY_TASK_TIME_LIMIT = 30 * 60
+    # CELERY_ACCEPT_CONTENT = ["json"]
+    # CELERY_TASK_SERIALIZER = "json"
+    # CELERY_RESULT_SERIALIZER = "json"
+
+    # print(CELERY_BROKER_URL)
 
     # CELERY_BEAT_SCHEDULE = {
     #     "delete_schedule_quotes": {
@@ -332,27 +298,71 @@ class Development(Local):
     #     },
     # }
 
-    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-    AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
-    AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
-    AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME")
 
-    # set up for using MailGun SMTP backend
-    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_HOST = "smtp.mailgun.org"
-    EMAIL_HOST_USER = env("EMAIL_HOST_USER")
-    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
-    EMAIL_PORT = 465
-    EMAIL_USE_SSL = True
-    EMAIL_USE_TLS = False
-    DEFAULT_FROM_EMAIL = ""
+class Development(Local):
+    """
+    The in-development settings and the default configuration.
+    """
+
+    env = environ.Env()
+
+    env_file = os.path.join(BASE_DIR, "config/envs/.env.dev")
+
+    env.read_env(env_file=env_file)
+
+    TOKEN_EXPIRE_AT = 60
+
+    CSRF_TRUSTED_ORIGINS = []
+
+    # DEV APPS
+    # NOT ALL LIBRARIES HERE MIGHT MAKE IT TO STAGING OR PRODUCTION
+    DEV_APPS = ["knox", "drf_standardized_errors"]
+    Common.INSTALLED_APPS.extend(DEV_APPS)
+
+    CORS_ORIGIN_ALLOW_ALL = True
+
+    # CACHES = {
+    #     "default": {
+    #         "BACKEND": "django.core.cache.backends.redis.RedisCache",
+    #         "LOCATION": env("REDIS_URI2"),
+    #         # "OPTIONS": {"ssl_cert_reqs": None},
+    #     }
+    # }
+
+    # ssl_context = ssl.SSLContext()
+    # ssl_context.check_hostname = False
+
+    # heroku_redis_ssl_host = {
+    #     "address": env("REDIS_URI"),  # The 'rediss' schema denotes a SSL connection.
+    #     # "ssl_cert_reqs": None,
+    # }
+
+    # CHANNEL_LAYERS = {
+    #     "default": {
+    #         "BACKEND": "channels_redis.core.RedisChannelLayer",
+    #         "CONFIG": {
+    #             "hosts": [
+    #                 heroku_redis_ssl_host,
+    #             ],
+    #         },
+    #     },
+    # }
 
 
 class Staging(Common):
     """
     The in-staging settings.
     """
+
+    env = environ.Env()
+
+    env_file = os.path.join(BASE_DIR, "config/envs/.env.staging")
+
+    env.read_env(env_file=env_file)
+
+    DEBUG = False
+
+    SECRET_KEY = env("DJANGO_SECRET_KEY")
 
     # Security
     SESSION_COOKIE_SECURE = values.BooleanValue(True)
@@ -371,15 +381,15 @@ class Staging(Common):
 
     # BETA APPS
     # NOT ALL LIBRARIES HERE MIGHT MAKE IT TO PRODUCTION
-    BETA_APPS = [
-        "knox",
-    ]
+    BETA_APPS = []
 
     Common.INSTALLED_APPS.extend(BETA_APPS)
 
     DATABASES = values.DatabaseURLValue(env("DATABASE_URL"))
 
-    DATABASES["default"]["CONN_MAX_AGE"] = 600
+    DATABASES = values.DatabaseURLValue(env("DATABASE_URL"))
+
+    DATABASES.default["CONN_MAX_AGE"] = 600
 
     CORS_ORIGIN_ALLOW_ALL = False
 
@@ -434,7 +444,7 @@ class Staging(Common):
     Common.REST_FRAMEWORK.update(
         {
             "DEFAULT_AUTHENTICATION_CLASSES": (
-                "services.authservice.backends.OAuth2ClientCredentialAuthentication",
+                "config.backends.OAuth2ClientCredentialAuthentication",
                 "knox.auth.TokenAuthentication",
             ),
             "DEFAULT_PARSER_CLASSES": ("rest_framework.parsers.JSONParser",),
@@ -453,50 +463,32 @@ class Staging(Common):
         "SCOPES": {"read": "Read scope", "write": "Write scope"},
     }
 
-    CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.redis.RedisCache",
-            "LOCATION": env("REDIS_URI2"),
-            "OPTIONS": {"ssl_cert_reqs": None},
-        }
-    }
+    # CACHES = {
+    #     "default": {
+    #         "BACKEND": "django.core.cache.backends.redis.RedisCache",
+    #         "LOCATION": env("REDIS_URI2"),
+    #         "OPTIONS": {"ssl_cert_reqs": None},
+    #     }
+    # }
 
-    ssl_context = ssl.SSLContext()
-    ssl_context.check_hostname = False
+    # ssl_context = ssl.SSLContext()
+    # ssl_context.check_hostname = False
 
-    heroku_redis_ssl_host = {
-        "address": env(
-            "REDIS_URI"
-        ),  # The 'rediss' schema denotes a SSL connection.
-        "ssl_cert_reqs": None,
-    }
+    # heroku_redis_ssl_host = {
+    #     "address": env("REDIS_URI"),  # The 'rediss' schema denotes a SSL connection.
+    #     "ssl_cert_reqs": None,
+    # }
 
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "channels_redis.core.RedisChannelLayer",
-            "CONFIG": {
-                "hosts": [
-                    heroku_redis_ssl_host,
-                ],
-            },
-        },
-    }
-
-    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-    AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
-    AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
-    AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME")
-
-    # set up for using MailGun SMTP backend
-    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_HOST = "smtp.mailgun.org"
-    EMAIL_HOST_USER = env("EMAIL_HOST_USER")
-    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
-    EMAIL_PORT = 465
-    EMAIL_USE_SSL = True
-    EMAIL_USE_TLS = False
-    DEFAULT_FROM_EMAIL = ""
+    # CHANNEL_LAYERS = {
+    #     "default": {
+    #         "BACKEND": "channels_redis.core.RedisChannelLayer",
+    #         "CONFIG": {
+    #             "hosts": [
+    #                 heroku_redis_ssl_host,
+    #             ],
+    #         },
+    #     },
+    # }
 
 
 class Production(Staging):
@@ -504,12 +496,12 @@ class Production(Staging):
     The in-production settings.
     """
 
-    # BETA APPS NOT ALL LIBRARIES HERE MIGHT MAKE IT TO PRODUCTION
-    BETA_APPS = [
-        "knox",
-    ]
+    env = environ.Env()
 
-    Common.INSTALLED_APPS.extend(BETA_APPS)
+    env.read_env(env_file="config/envs/.env.prod")
+    DEBUG = False
+
+    SECRET_KEY = env("DJANGO_SECRET_KEY")
 
     Common.MIDDLEWARE.insert(0, "config.middlewares.HTTPSRedirectMiddleware")
     Common.MIDDLEWARE.insert(1, "config.middlewares.CORSMiddleware")
@@ -566,7 +558,7 @@ class Production(Staging):
     Common.REST_FRAMEWORK.update(
         {
             "DEFAULT_AUTHENTICATION_CLASSES": (
-                "services.authservice.backends.OAuth2ClientCredentialAuthentication",
+                "config.backends.OAuth2ClientCredentialAuthentication",
                 "knox.auth.TokenAuthentication",
             ),
             "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
@@ -584,47 +576,29 @@ class Production(Staging):
         "SCOPES": {"read": "Read scope", "write": "Write scope"},
     }
 
-    CACHING = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.redis.RedisCache",
-            "LOCATION": env("REDIS_URI2"),
-            "OPTIONS": {"ssl_cert_reqs": None},
-        }
-    }
+    # CACHING = {
+    #     "default": {
+    #         "BACKEND": "django.core.cache.backends.redis.RedisCache",
+    #         "LOCATION": env("REDIS_URI2"),
+    #         "OPTIONS": {"ssl_cert_reqs": None},
+    #     }
+    # }
 
-    ssl_context = ssl.SSLContext()
-    ssl_context.check_hostname = False
+    # ssl_context = ssl.SSLContext()
+    # ssl_context.check_hostname = False
 
-    heroku_redis_ssl_host = {
-        "address": env(
-            "REDIS_URI"
-        ),  # The 'rediss' schema denotes a SSL connection.
-        "ssl_cert_reqs": None,
-    }
+    # heroku_redis_ssl_host = {
+    #     "address": env("REDIS_URI"),  # The 'rediss' schema denotes a SSL connection.
+    #     "ssl_cert_reqs": None,
+    # }
 
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "channels_redis.core.RedisChannelLayer",
-            "CONFIG": {
-                "hosts": [
-                    heroku_redis_ssl_host,
-                ],
-            },
-        },
-    }
-
-    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-    AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
-    AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
-    AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME")
-
-    # set up for using MailGun SMTP backend
-    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_HOST = "smtp.mailgun.org"
-    EMAIL_HOST_USER = env("EMAIL_HOST_USER")
-    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
-    EMAIL_PORT = 465
-    EMAIL_USE_SSL = True
-    EMAIL_USE_TLS = False
-    DEFAULT_FROM_EMAIL = ""
+    # CHANNEL_LAYERS = {
+    #     "default": {
+    #         "BACKEND": "channels_redis.core.RedisChannelLayer",
+    #         "CONFIG": {
+    #             "hosts": [
+    #                 heroku_redis_ssl_host,
+    #             ],
+    #         },
+    #     },
+    # }

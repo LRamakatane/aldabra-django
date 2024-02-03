@@ -8,7 +8,7 @@ from services.utils.cache import Cache
 from typing import Any
 from services.exceptions import EmployeeNotFound
 
-from config.settings import getvar
+from config.settings import env as getvar
 
 cache = Cache(timeout=3600)
 

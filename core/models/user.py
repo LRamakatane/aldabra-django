@@ -75,16 +75,6 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_customer(self, password=None, **kwargs):
-        """creates a customer object using user object"""
-        user = self.create_user(email=kwargs.get("email"), password=None)
-        customer = Customer(user=user, **kwargs)
-        customer.save()
-        if customer and user:
-            return customer
-        else:
-            raise Exception("Could not create customer")
-
 
 class User(AbstractBaseUser, PermissionsMixin):
     """User model class definition

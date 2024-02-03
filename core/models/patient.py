@@ -10,7 +10,7 @@ class Patient(models.Model):
                           unique=True)
     user = models.OneToOneField("User", on_delete=models.CASCADE)
     name = models.JSONField(serialize=True, default=default_name, blank=True)
-    hospitals = models.ManyToManyField("Hospital", blank=True)
+    hospitals = models.ManyToManyField("Hospital", blank=True, related_name="hospital")
     primary_hospital = models.OneToOneField("Hospital", blank=True, null=True,
                                             on_delete=models.DO_NOTHING)
     contact = models.JSONField(serialize=True, default=default_contact,

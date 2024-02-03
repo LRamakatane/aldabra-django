@@ -15,7 +15,7 @@ class Doctor(models.Model):
                                        on_delete=models.DO_NOTHING)
     resident_hospital = models.OneToOneField("Hospital",
                                              on_delete=models.DO_NOTHING,
-                                             null=True, blank=True)
+                                             null=True, blank=True, related_name="resident_hospital")
     hospitals = models.ManyToManyField("Hospital", blank=True)
 
     def __str__(self) -> str:

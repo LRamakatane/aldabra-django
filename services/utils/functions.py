@@ -4,7 +4,7 @@
 import datetime
 import copy
 import requests
-from config.settings import getvar
+from config.settings import env as getvar
 
 # other functions
 

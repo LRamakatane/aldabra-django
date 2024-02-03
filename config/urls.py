@@ -12,25 +12,22 @@ import debug_toolbar
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="Desmond Project Template",
+        title="Aldabra AI",
         default_version="v1",
-        description="API for Desmond Template",
+        description="Aldabra AI",
         terms_of_service="",
-        contact=openapi.Contact(email="nnebuedesmond@gmail.com"),
+        contact=openapi.Contact(email=""),
         license=openapi.License(name="MIT License"),
     ),
     public=True,
-    permission_classes=(permissions.AllowAny,),
+    permission_classes=(permissions.IsAuthenticated,),
     authentication_classes=(authentication.BasicAuthentication,),
 )
 
-# api v1 url mappings
-v1 = [
-    path("inventories/", include("services.inventory.urls", namespace="inventory_v1")),
-    path("manifests/", include("services.manifest.urls", namespace="manifest_v1")),
-    path("auth/", include("services.authservice.urls", namespace="auth_v1")),
-]
 
+v1 = [
+    path('auth/', include('services.authservice.urls', 'auth_service_v1'))
+]
 
 # oauth url mapping
 # OAuth2 provider endpoints
