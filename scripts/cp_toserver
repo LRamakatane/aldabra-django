@@ -1,5 +1,5 @@
 #!/bin/bash
 echo 'copying files...'
-scp .env main.py manage.py requirements.txt techteam@34.67.10.212:app
+scp .env main.py manage.py requirements.txt techteam@***
 echo 'copying directories...'
-scp -r config/ core/ services/ scripts/ techteam@34.67.10.212:app
+scp -r config/ core/ services/ scripts/ techteam@***

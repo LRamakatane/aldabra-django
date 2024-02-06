@@ -4,15 +4,15 @@
 Environment=$ENV
 
 if [ $Environment = "staging" ]; then
-   ip=54.209.231.42
+   ip=***
    public_key="server-key-pair-staging.pem"
 
 elif [ $Environment = "dev" ]; then
-    ip=34.192.156.241
+    ip=***
     public_key="server-key-pair.pem"
 
 elif [ $Environment = "production" ]; then
-    ip=54.243.217.35
+    ip=***
     public_key="server-key-pair.pem"
 
 else

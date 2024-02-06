@@ -15,7 +15,7 @@ ENV="$ENV"
 sudo cp -r /home/ubuntu/booking-$ENV/static/ /var/www/static/
 sudo bash -c "echo '
 server {
-    server_name booking-api-$ENV.aajexpress.org;
+    server_name apis.aldabra.ai;
 
     location = /favicon.ico {
         access_log off;
@@ -38,8 +38,8 @@ server {
     }
 
     listen 443 ssl; # managed by Certbot
-    ssl_certificate /etc/letsencrypt/live/booking-api-$ENV.aajexpress.org/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/booking-api-$ENV.aajexpress.org/privkey.pem; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/apis.aldabra.ai/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/apis.aldabra.ai/privkey.pem; # managed by Certbot
     include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
 
@@ -47,18 +47,18 @@ server {
 
 
 server {
-    if (\$host = booking-api-$ENV.aajexpress.org) {
+    if (\$host = apis.aldabra.ai) {
         return 301 https://\$host\$request_uri;
     } # managed by Certbot
 
 
     listen 80;
-    server_name booking-api-$ENV.aajexpress.org;
+    server_name apis.aldabra.ai;
     return 404; # managed by Certbot
 
 
 }
-' > /etc/nginx/sites-available/booking-api-$ENV"
+' > /etc/nginx/sites-available/aldabra-api"
 
 # /etc/nginx/proxy_params
 
@@ -69,7 +69,7 @@ proxy_set_header X-Forwarded-Proto \$scheme;
 ' > /etc/nginx/proxy_params"
 
 
-sudo ln -s /etc/nginx/sites-available/booking-api-$ENV /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/aldabra-api /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl restart nginx
 

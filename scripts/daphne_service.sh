@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Get the project folder from the first command-line argument
-PROJECT_FOLDER=booking-$ENV
+PROJECT_FOLDER=aldabra-$ENV
 PORT=8000
 
 # # Check if the project folder argument is provided
@@ -13,7 +13,7 @@ PORT=8000
 
 # Generate the contents of the gunicorn.service file
 SERVICE_CONTENT="[Unit]
-Description=Daphne Service for Your Booking API
+Description=Daphne Service for Your aldabra API
 After=network.target
 
 [Service]
@@ -40,19 +40,19 @@ Restart=always
 WantedBy=multi-user.target"
 
 # Create the gunicorn.service file with the generated contents
-echo "$SERVICE_CONTENT" | sudo tee /etc/systemd/system/booking-$ENV-daphne.service > /dev/null
-echo "$WORKER_CONTENT" | sudo tee /etc/systemd/system/booking-$ENV-worker.service > /dev/null
+echo "$SERVICE_CONTENT" | sudo tee /etc/systemd/system/aldabra-$ENV-daphne.service > /dev/null
+echo "$WORKER_CONTENT" | sudo tee /etc/systemd/system/aldabra-$ENV-worker.service > /dev/null
 
 # Reload systemd to pick up the changes
 sudo systemctl daemon-reload
-sudo systemctl start booking-$ENV-daphne
-sudo systemctl enable booking-$ENV-daphne
-sudo systemctl restart booking-$ENV-daphne
+sudo systemctl start aldabra-$ENV-daphne
+sudo systemctl enable aldabra-$ENV-daphne
+sudo systemctl restart aldabra-$ENV-daphne
 
 sudo systemctl daemon-reload
-sudo systemctl start booking-$ENV-worker
-sudo systemctl enable booking-$ENV-worker
-sudo systemctl restart booking-$ENV-worker
+sudo systemctl start aldabra-$ENV-worker
+sudo systemctl enable aldabra-$ENV-worker
+sudo systemctl restart aldabra-$ENV-worker
 
 
 echo "Daphne service file created successfully!"
