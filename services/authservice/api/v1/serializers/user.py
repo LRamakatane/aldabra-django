@@ -58,7 +58,7 @@ class UserSerializer(serializers.ModelSerializer):
                 # get role object by name
                 # and add role primary_key
                 # to role list
-                for name__id in group_names:
+                for name__id in role_names:
                     role = (
                         Role.objects.get(name=name__id)
                         if type(name__id) is str

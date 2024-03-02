@@ -2,27 +2,27 @@
 """Medical Record Validators"""
 
 
-def validate_date_time():
+def validate_date_time(data):
     pass
 
 
-def validate_provider():
+def validate_provider(data):
     pass
 
 
-def validate_chief_complaint():
+def validate_chief_complaint(data):
     pass
 
 
-def validate_diagnosis():
+def validate_diagnosis(data):
     pass
 
 
-def validate_procedures():
+def validate_procedures(data):
     pass
 
 
-def validate_medications():
+def validate_medications(data):
     pass
 
 

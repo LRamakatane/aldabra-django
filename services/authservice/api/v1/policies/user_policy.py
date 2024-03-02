@@ -11,31 +11,26 @@ class UserAccesPolicy(AccessPolicy):
     statements: List[dict]
     statements = [
         {
-            "action": ["create", "destroy", "update"],
-            "principal": ["group:System Admins", "group:Owners"],
+            "action": ["create"],
+            "principal": ["*"],
             "effect": "allow",
         },
         {
-            "action": ["list", "retrieve"],
-            "principal": [
-                "group:System Admins",
-                "group:Owners",
-            ],
-            "effect": "allow",
-        },
-        {
-            "action": ["reset_password"],
-            "principal": ["group:System Admins"],
+            "action": ["list"],
+            "principal": ["*"],
             "effect": "allow",
         },
         {
             "action": [
+                "reset_password",
                 "change_password",
+                "update",
+                "destroy"
             ],
             "principal": ["*"],
             "effect": "allow",
             "condition": ["is_user"],
-        },
+        }
     ]
 
     def is_user(self, request, view, action: list) -> bool:

@@ -2,7 +2,7 @@
 """Hospital"""
 import uuid
 from django.db import models
-from core.models.defaults import default_contact
+from core.models.defaults import default_contact, default_location_data
 
 
 class Hospital(models.Model):
@@ -18,12 +18,12 @@ class Hospital(models.Model):
     id = models.UUIDField(
         "Hospital ID", primary_key=True, default=uuid.uuid4, unique=True
     )
-    name = models.CharField(max_length=250)
+    name = models.CharField(max_length=500)
     contact = models.JSONField(
         default=default_contact, serialize=True, blank=True, null=True
     )
     type = models.CharField(max_length=2, choices=HOSPITAL_TYPES)
-    location = models.CharField(max_length=70, blank=True)
+    location = models.JSONField(serialize=True, blank=True, default=default_location_data)
 
     def __str__(self) -> str:
         return f"{self.name}"

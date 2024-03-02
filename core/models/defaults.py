@@ -11,6 +11,17 @@ def default_name():
     }
 
 
+def default_location_data():
+    return {
+        "address_lines": ["address line 1", "address line 2"],
+        "city": "Sometown",
+        "state": "Some State",
+        "zip": "1123CCA-B",
+        "country": "Some country Republic",
+        "country_code": "SR",
+    }
+
+
 def default_contact():
     return {
         "phone": "123-456-7890",

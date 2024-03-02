@@ -15,6 +15,7 @@ class Patient(models.Model):
                                             on_delete=models.DO_NOTHING)
     contact = models.JSONField(serialize=True, default=default_contact,
                                blank=True)
+    
 
     def __str__(self) -> str:
         first = self.name.get("first_name", "")

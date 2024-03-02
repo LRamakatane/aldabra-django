@@ -41,7 +41,7 @@ cache = Cache()
 
 
 class UserViewset(AccessViewSetMixin, viewsets.ViewSet, viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated | TokenHasReadWriteScope]
+    permission_classes = [permissions.AllowAny]
     pagination_class = CustomPagination
     queryset = User.objects.all()
     access_policy = UserAccesPolicy

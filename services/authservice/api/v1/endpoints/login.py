@@ -2,11 +2,11 @@
 """login api view with knox"""
 # REST FRAMEWORK
 from rest_framework import permissions, generics, status
-from rest_framework.authtoken.serializers import AuthTokenSerializer
+# from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.response import Response
-from services.clients.oauthclient import get_employee
-from services.exceptions import EmployeeNotFound
+# from services.clients.oauthclient import get_employee
+# from services.exceptions import EmployeeNotFound
 
 # KNOX
 from knox.models import AuthToken
@@ -76,15 +76,6 @@ class LoginAPIView(generics.GenericAPIView):
             serializer.is_valid(raise_exception=True)
             user = serializer.validated_data
 
-        except Exception as error:
-            response = exception_handler(
-                exc=error, context="something went wrong while login you in"
-            )
-            return handle_error_response(response, error)
-
-        try:
-            request.user = user
-            get_employee(request)
         except Exception as error:
             response = exception_handler(
                 exc=error, context="something went wrong while login you in"
