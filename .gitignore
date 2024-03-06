@@ -35,6 +35,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
+dev/
 build/
 develop-eggs/
 dist/
@@ -89,3 +90,4 @@ local_settings.py
 db.sqlite3
 venv
 *.json
+logfile
