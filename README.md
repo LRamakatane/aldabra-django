@@ -1,5 +1,7 @@
-# Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+<img src="https://github.com/LRamakatane/aldabraAi-microservices/assets/111230173/e73a12d5-4766-46c9-ae20-b8aa7b0ba20c" width="100" height="100">
+
+# AldabraAPI - Healthcare Data Interoperability
+ Aldabra.ai helps healthcare practitioners share patient records quickly and securely by integrating our APIs into their systems.
 
 # Getting Started
 TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
