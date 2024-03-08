@@ -26,7 +26,11 @@ schema_view = get_schema_view(
 
 
 v1 = [
-    path('auth/', include('services.authservice.urls', 'auth_service_v1'))
+    path('auth/', include('services.authservice.urls', 'auth_service_v1')),
+    path('doctors/', include('services.doctors.urls', 'doctors_v1')),
+    path('hospitals/', include('services.hospitals.urls', 'hospitals_v1')),
+    path('patients/', include('services.patients.urls', 'patients_v1')),
+    path('records/', include('services.medical_records.urls', 'records_v1'))
 ]
 
 # oauth url mapping

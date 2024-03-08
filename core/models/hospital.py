@@ -24,6 +24,8 @@ class Hospital(models.Model):
     )
     type = models.CharField(max_length=2, choices=HOSPITAL_TYPES)
     location = models.JSONField(serialize=True, blank=True, default=default_location_data)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:
         return f"{self.name}"

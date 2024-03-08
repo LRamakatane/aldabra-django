@@ -161,6 +161,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField("Is Active", default=True)
     is_admin = models.BooleanField("Is Admin", default=False)
     objects = UserManager()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

@@ -17,6 +17,8 @@ class Doctor(models.Model):
                                              on_delete=models.DO_NOTHING,
                                              null=True, blank=True, related_name="resident_hospital")
     hospitals = models.ManyToManyField("Hospital", blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:
         title = self.name.get("title", "")
