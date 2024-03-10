@@ -8,7 +8,7 @@ import traceback
 
 
 def handle_error_response(response, error, exception=True) -> Response:
-    summary = traceback.StackSummary.extract(traceback.walk_stack(error), limit=10, lookup_lines=True, capture_locals=True)
+    summary = traceback.StackSummary.extract(traceback.walk_stack(None), lookup_lines=True, capture_locals=True)
 
     print(response)
 

@@ -9,7 +9,8 @@ from rest_framework.routers import DefaultRouter
 from services.authservice.api.v1.endpoints import (
     UserViewset,
     LoginAPIView,
-    RefreshTokenView
+    RefreshTokenView,
+    UserRegistrationAPIView
 )
 
 # knox views
@@ -25,5 +26,6 @@ urlpatterns = [
     path('refresh-token/', RefreshTokenView.as_view(), name='refresh_token'),
     path('logout/', knox_views.LogoutView.as_view(), name='knox_logout'),
     path('logoutall/', knox_views.LogoutAllView.as_view(), name='knox_logoutall'),
+    path('register/', UserRegistrationAPIView.as_view(), name='user_registration')
 ]
 urlpatterns += router.urls

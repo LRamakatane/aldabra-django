@@ -12,11 +12,12 @@ class Doctor(models.Model):
     user = models.OneToOneField("User", on_delete=models.CASCADE)
     name = models.JSONField(serialize=True, default=default_name)
     specialization = models.ForeignKey("Specialization",
-                                       on_delete=models.DO_NOTHING, blank=True)
+                                       on_delete=models.DO_NOTHING, blank=True, null=True)
     resident_hospital = models.OneToOneField("Hospital",
                                              on_delete=models.DO_NOTHING,
                                              null=True, blank=True, related_name="resident_hospital")
     hospitals = models.ManyToManyField("Hospital", blank=True)
+    # doctor_id: this would hold the doctor's actual id in real life
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

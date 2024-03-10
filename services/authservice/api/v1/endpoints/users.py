@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 
 # rest framework and oauth
 from rest_framework import viewsets, permissions, status
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import serializers
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
@@ -19,7 +20,7 @@ from core.models import User
 # serializers
 from services.authservice.api.v1.serializers import (
     UserSerializer,
-    UserCustomerSerializer,
+    UserRegistrationSerializer,
     ChangePasswordSerializer,
     ResetPasswordSerializer,
 )
@@ -250,14 +251,14 @@ class UserViewset(AccessViewSetMixin, viewsets.ViewSet, viewsets.ModelViewSet):
 
         data = format_response_data(user, 200, "user updated!")
         response = Response(data=data, status=status.HTTP_200_OK)
-        cache.invalidate('users')
-        cache.invalidate_many('users')
+        cache.invalidate("users")
+        cache.invalidate_many("users")
         return response
 
     def destroy(self, request, *args, **kwargs):
         response = super().destroy(request, *args, **kwargs)
-        cache.invalidate('users')
-        cache.invalidate_many('users')
+        cache.invalidate("users")
+        cache.invalidate_many("users")
         return response
 
     @action(methods=["post", "put"], detail=True)
@@ -266,7 +267,8 @@ class UserViewset(AccessViewSetMixin, viewsets.ViewSet, viewsets.ModelViewSet):
 
         Description
         -----------
-        only users can change their own password when they're logged in, if they forgot their password, then an admin must reset it for them.
+        only users can change their own password when they're logged in, if they forgot their password,
+        then an admin must reset it for them.
 
         Access Permission
         -----------------
@@ -384,3 +386,33 @@ class UserViewset(AccessViewSetMixin, viewsets.ViewSet, viewsets.ModelViewSet):
             "Password updated successfully!",
         )
         return Response(data=data, status=status.HTTP_200_OK)
+
+
+class UserRegistrationAPIView(APIView):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = UserRegistrationSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            registration_data = self.serializer_class(data=request.data)
+            registration_data.is_valid(raise_exception=True)
+            user = registration_data.save()
+
+        except Exception as error:
+            if isinstance(user, User):
+                user.delete()
+
+            response = exception_handler(error, "an error occurred")
+            return handle_error_response(response, error, exception=True)
+
+        # -- get the absolute URL for user detail --
+        relative_path = '/api/v1/auth/'
+        absolute_url = request.build_absolute_uri(relative_path)
+
+        data = format_response_data(
+            UserSerializer(user).data, 201, "user registered successfully", f"{absolute_url}login"
+        )
+        data["profile"] = f"{absolute_url}users/{user.id}/profile"
+        data["user_detail"] = f"{absolute_url}users/{user.id}"
+
+        return Response(data, status=status.HTTP_201_CREATED)

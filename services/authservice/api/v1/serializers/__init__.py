@@ -2,8 +2,8 @@
 """initialize all serializers"""
 from .user import (
     UserSerializer,
-    UserCustomerSerializer,
     ChangePasswordSerializer,
-    ResetPasswordSerializer
+    ResetPasswordSerializer,
+    UserRegistrationSerializer
 )
 from .login import LoginUserSerializer

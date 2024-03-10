@@ -12,7 +12,7 @@ cache = Cache()
 
 
 class PatientAPIView(viewsets.ModelViewSet):
-    queryset = Patient.objects.all()
+    queryset = Patient.objects.all().order_by('-created_at')
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = PatientSerializer
 
@@ -55,7 +55,7 @@ class PatientAPIView(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         try:
-            queryset = self.queryset.latest("-created_at")
+            queryset = self.queryset
             patients = self.serializer_class(queryset, many=True)
         except Exception as error:
             response = exception_handler(error, "error occurred")

@@ -25,7 +25,8 @@ class UserAccesPolicy(AccessPolicy):
                 "reset_password",
                 "change_password",
                 "update",
-                "destroy"
+                "destroy",
+                "retrieve"
             ],
             "principal": ["*"],
             "effect": "allow",

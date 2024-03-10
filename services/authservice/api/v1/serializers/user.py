@@ -31,7 +31,10 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create_profile(self, roles, user):
 
-        model_methods = {"patient": Patient.objects.create, "doctor": Doctor.objects.create}
+        model_methods = {
+            "patient": Patient.objects.create,
+            "doctor": Doctor.objects.create,
+        }
 
         try:
             for role in roles:
@@ -170,32 +173,33 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
-class UserCustomerSerializer(serializers.ModelSerializer):
-    """create a customer from a user"""
-
-    full_name = serializers.CharField(required=False)
-    phone_number = serializers.CharField(required=True)
+class UserRegistrationSerializer(serializers.Serializer):
+    PROFILE_TYPE = [
+        ("DOCTOR", "Doctor"),
+        ("PATIENT", "Patient"),
+        ("HOSPITAL", "Hospital"),
+    ]
+    profile_type = serializers.ChoiceField(choices=PROFILE_TYPE, required=True)
+    email_address = serializers.EmailField(required=True)
+    password = serializers.CharField(required=True)
+    # date_of_birth = serializers.DateField(
+    #    format="%Y-%m-%d", input_formats=["%d/%m/%Y", "%Y-%m-%d"], required=False
+    # )
 
     class Meta:
-        """class meta data"""
-
-        model = User
-        fields = {"email", "password"}
-
-        # makes password write only
-        # this way user's can't see password characters
-        extra_kwargs = {
-            "password": {"write_only": True},
-        }
+        fields = "__all__"
 
     def create(self, validated_data):
-        """create a customer object"""
-        # creat's a customer object by calling
-        # .create_customer user object manager method
-        try:
-            user = User.objects.create_customer(**validated_data)
-        except Exception as error:
-            raise Exception(error)
+        data = {
+            "email": validated_data.get('email_address'),
+            "password": validated_data.get('password'),
+            "user_roles": [validated_data.get('profile_type').lower(),]
+        }
+
+        user_data = UserSerializer(data=data)
+        user_data.is_valid(raise_exception=True)
+        user = user_data.save()
+
         return user
 
 

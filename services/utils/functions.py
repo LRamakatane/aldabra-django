@@ -27,8 +27,13 @@ def generate_30min_timestamp():
     return timestamp
 
 
-def format_response_data(data: dict, status: int, message="success!"):
-    return {"message": "success!", "status_code": status, "payload": data}
+def format_response_data(data: dict, status: int, message="success!", next_resource_link='http://127.0.0.1'):
+    return {
+        "message": "success!",
+        "status_code": status,
+        "payload": data,
+        "next_resource_link": next_resource_link,
+    }
 
 
 def get_exchange_rate(base_currency: str, target) -> dict:
