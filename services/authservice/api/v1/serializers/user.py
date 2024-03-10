@@ -3,7 +3,7 @@
 from core.models import User
 from rest_framework import serializers
 from django.contrib.auth.models import Group
-from core.models import Role
+from core.models import Role, Doctor, Patient
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -28,6 +28,22 @@ class UserSerializer(serializers.ModelSerializer):
             "date_joined": {"read_only": True},
             "roles": {"read_only": True},
         }
+
+    def create_profile(self, roles, user):
+
+        model_methods = {"patient": Patient.objects.create, "doctor": Doctor.objects.create}
+
+        try:
+            for role in roles:
+                if isinstance(role, int):
+                    role_object = Role.objects.get(pk=role)
+                    role = role_object.name
+
+                func = model_methods.get(role.lower(), None)
+                if func is not None:
+                    func(user=user)
+        except Exception as error:
+            raise error
 
     def create(self, validated_data):
         roles = []
@@ -86,6 +102,7 @@ class UserSerializer(serializers.ModelSerializer):
                 user.save()
             if roles:
                 user.roles.set(roles)
+                self.create_profile(role_names, user)
         except Exception as error:
             raise Exception(error)
         return user
