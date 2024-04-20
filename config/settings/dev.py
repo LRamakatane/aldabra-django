@@ -32,9 +32,8 @@ print(BASE_DIR)
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 env = environ.Env(DEBUG=(bool, True))
-env_file = os.path.join(BASE_DIR, "envs/env.dev")
+env_file = os.path.join(BASE_DIR, "envs/.env.dev")
 env.read_env(env_file)
-
 
 def getvar(name: str):
     """tries to get the environmental vairable using\
@@ -107,13 +106,13 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 # Set STATIC_ROOT to the directory where you want to collect static files during deployment
 STATIC_ROOT = "/var/www/booking-dev-staticfiles"
 
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": getvar("REDIS_URI"),
-        # "OPTIONS": {"ssl_cert_reqs": None},
-    }
-}
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django.core.cache.backends.redis.RedisCache",
+#         "LOCATION": getvar("REDIS_URI"),
+#         # "OPTIONS": {"ssl_cert_reqs": None},
+#     }
+# }
 
 # ssl_context = ssl.SSLContext()
 # ssl_context.check_hostname = False
@@ -220,8 +219,8 @@ LOGGING = {
 # AWS_S3_REGION_NAME = getenv("AWS_S3_REGION_NAME")
 # DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
-EMAIL_HOST_USER = getvar("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = getvar("EMAIL_HOST_PASSWORD")
+# EMAIL_HOST_USER = getvar("EMAIL_HOST_USER")
+# EMAIL_HOST_PASSWORD = getvar("EMAIL_HOST_PASSWORD")
 
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_SAMESITE = "None"
