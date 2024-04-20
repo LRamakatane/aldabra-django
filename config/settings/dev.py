@@ -53,8 +53,8 @@ def getvar(name: str):
     return var
 
 
-SECRET_KEY = env("SECRET_KEY")
-DEBUG = env("DEBUG")
+SECRET_KEY = getvar("SECRET_KEY")
+DEBUG = getvar("DEBUG")
 
 DATABASES = {
     "default": {
