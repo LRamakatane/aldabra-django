@@ -1,0 +1,42 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:latest
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - container-network
+    environment:
+      POSTGRES_DB: aldabradb-local
+      POSTGRES_USER: krumitz
+      POSTGRES_PASSWORD: <code*db*X@>
+
+  aldabra-api:
+    build: .
+    command: python /app/manage.py runserver 0.0.0.0:80
+    volumes:
+      - .:/app
+    ports:
+      - "8888:80"
+    networks:
+      - container-network
+    env_file:
+      - config/envs/.env.dev
+    environment:
+      DBNAME: aldabradb-local
+      DATABASE_URL: postgresql://krumitz:<code*db*X@>@aldabra-django-db-1:5432/aldabradb-local
+      ENV: dev
+      SECRET_KEY: "47c9d747bd60e375bc8656a9f64a246cf65a0bd9c88d727122a82050e38f7fa08b799f731a61705c41c6053c57935fee"
+    depends_on:
+      - db
+
+networks:
+  container-network:
+    external: true
+    name: container-network
+
+volumes:
+  postgres_data:
